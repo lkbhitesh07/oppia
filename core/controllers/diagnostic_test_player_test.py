@@ -17,10 +17,9 @@
 from __future__ import annotations
 
 from core import feconf
-from core.domain import platform_feature_services as feature_services
-from core.domain import platform_parameter_domain
-from core.domain import platform_parameter_list
-from core.domain import platform_parameter_registry
+from core import platform_feature_list
+from core.domain import feature_flag_registry
+from core.domain import feature_flag_services as feature_services
 from core.domain import question_services
 from core.domain import topic_domain
 from core.domain import topic_fetchers
@@ -37,19 +36,19 @@ class DiagnosticTestLandingPageTest(test_utils.GenericTestBase):
         self.signup(self.CURRICULUM_ADMIN_EMAIL, self.CURRICULUM_ADMIN_USERNAME)
         self.owner_id = self.get_user_id_from_email(self.CURRICULUM_ADMIN_EMAIL)
         self.original_parameter_registry = (
-            platform_parameter_registry.Registry.parameter_registry.copy())
+            feature_flag_registry.Registry.feature_registry.copy())
 
     def tearDown(self) -> None:
         super().tearDown()
-        platform_parameter_registry.Registry.parameter_registry = (
+        feature_flag_registry.Registry.feature_registry = (
             self.original_parameter_registry)
 
     def test_should_not_access_diagnostic_test_page_when_feature_is_disabled(
         self) -> None:
         feature_services.update_feature_flag(
-            platform_parameter_list.ParamNames.DIAGNOSTIC_TEST.value,
-            self.owner_id,
-            'test update',
+            platform_feature_list.FeatureNames.DIAGNOSTIC_TEST.value,
+            False,
+            0,
             []
         )
         self.get_html_response(
@@ -65,15 +64,10 @@ class DiagnosticTestLandingPageTest(test_utils.GenericTestBase):
         )
 
         feature_services.update_feature_flag(
-            platform_parameter_list.ParamNames.DIAGNOSTIC_TEST.value,
-            self.owner_id,
-            'test update',
-            [
-                platform_parameter_domain.PlatformParameterRule.from_dict({
-                    'filters': [],
-                    'value_when_matched': True
-                })
-            ]
+            platform_feature_list.FeatureNames.DIAGNOSTIC_TEST.value,
+            True,
+            0,
+            []
         )
         self.get_html_response(
             feconf.DIAGNOSTIC_TEST_PLAYER_PAGE_URL,

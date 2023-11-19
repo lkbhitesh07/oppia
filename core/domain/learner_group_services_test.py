@@ -145,7 +145,8 @@ class LearnerGroupServicesUnitTests(test_utils.GenericTestBase):
             False
         )
         self.assertTrue(
-            learner_group_services.is_learner_group_feature_enabled())
+            learner_group_services.is_learner_group_feature_enabled(
+                self.admin_id))
 
         registry.Registry.update_platform_parameter(
             'learner_groups_are_enabled', self.admin_id, 'edit rules',
@@ -163,7 +164,8 @@ class LearnerGroupServicesUnitTests(test_utils.GenericTestBase):
             False
         )
         self.assertFalse(
-            learner_group_services.is_learner_group_feature_enabled())
+            learner_group_services.is_learner_group_feature_enabled(
+                self.admin_id))
 
     def test_update_learner_group(self) -> None:
         updated_group = learner_group_services.update_learner_group(
