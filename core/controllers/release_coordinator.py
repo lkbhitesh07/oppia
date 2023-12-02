@@ -23,8 +23,8 @@ from core import utils
 from core.controllers import acl_decorators
 from core.controllers import base
 from core.domain import caching_services
+from core.domain import feature_flag_domain
 from core.domain import feature_flag_services as feature_services
-from core.domain import platform_feature_services
 
 from typing import Dict, List, TypedDict
 
@@ -64,7 +64,7 @@ class FeatureFlagsHandlerNormalizedPayloadDict(TypedDict):
     """
 
     action: str
-    feature_name: str
+    feature_flag_name: str
     force_enable_for_all_users: bool
     rollout_percentage: int
     user_group_ids: List[str]
@@ -90,7 +90,7 @@ class FeatureFlagsHandler(
                 },
                 'default_value': None
             },
-            'feature_name': {
+            'feature_flag_name': {
                 'schema': {
                     'type': 'basestring'
                 },
@@ -133,7 +133,7 @@ class FeatureFlagsHandler(
         feature_flag_dicts = feature_services.get_all_feature_flag_dicts()
         self.render_json({
             'feature_flags': feature_flag_dicts,
-            'server_stage': platform_feature_services.get_server_mode().value
+            'server_stage': feature_flag_domain.get_server_mode().value
         })
 
     @acl_decorators.can_access_release_coordinator_page
@@ -148,10 +148,10 @@ class FeatureFlagsHandler(
             # must be 'update_feature_flag' if this branch is
             # executed.
             assert action == 'update_feature_flag'
-            feature_name = self.normalized_payload.get('feature_name')
-            if feature_name is None:
+            feature_flag_name = self.normalized_payload.get('feature_flag_name')
+            if feature_flag_name is None:
                 raise Exception(
-                    'The \'feature_name\' must be provided when the action'
+                    'The \'feature_flag_name\' must be provided when the action'
                     ' is update_feature_flag.'
                 )
 
@@ -171,7 +171,7 @@ class FeatureFlagsHandler(
             assert user_group_ids is not None
             try:
                 feature_services.update_feature_flag(
-                    feature_name,
+                    feature_flag_name,
                     force_enable_for_all_users,
                     rollout_percentage,
                     user_group_ids
@@ -185,7 +185,7 @@ class FeatureFlagsHandler(
                 '[RELEASE-COORDINATOR] %s updated feature %s with new values: '
                 'rollout_percentage - %d, force_enable_for_all_users - %s, '
                 'user_group_ids - %s.' % (
-                    self.user_id, feature_name,
+                    self.user_id, feature_flag_name,
                     rollout_percentage,
                     force_enable_for_all_users,
                     user_group_ids)

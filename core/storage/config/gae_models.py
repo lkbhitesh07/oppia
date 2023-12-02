@@ -190,9 +190,10 @@ class FeatureFlagModel(base_models.BaseModel):
     """
 
     force_enable_for_all_users = datastore_services.BooleanProperty(
-        default=False)
-    rollout_percentage = datastore_services.IntegerProperty(default=0)
-    user_group_ids = datastore_services.JsonProperty(default=[])
+        default=False, indexed=True)
+    rollout_percentage = datastore_services.IntegerProperty(
+        default=0, indexed=True)
+    user_group_ids = datastore_services.StringProperty(repeated=True)
 
     @staticmethod
     def get_deletion_policy() -> base_models.DELETION_POLICY:
@@ -218,7 +219,7 @@ class FeatureFlagModel(base_models.BaseModel):
     @classmethod
     def create(
         cls,
-        feature_name: str,
+        feature_flag_name: str,
         force_enable_for_all_users: bool,
         rollout_percentage: int,
         user_group_ids: List[str]
@@ -226,9 +227,9 @@ class FeatureFlagModel(base_models.BaseModel):
         """Creates FeatureFlagModel instance.
 
         Args:
-            feature_name: str. The name of the feature-flag.
-            force_enable_for_all_users: bool. Force enable the feature-flag for
-                all the users.
+            feature_flag_name: str. The name of the feature-flag.
+            force_enable_for_all_users: bool. Whether to force-enable the
+                feature-flag for all the users.
             rollout_percentage: int. The defined percentage of logged-in
                 users for which the feature should be enabled.
             user_group_ids: List[str]. The list of ids of UserGroup objects.
@@ -236,11 +237,11 @@ class FeatureFlagModel(base_models.BaseModel):
         Returns:
             FeatureFlagModel. The created FeatureFlagModel instance.
         """
-        feature_entity = cls(
-            id=feature_name,
+        feature_flag_entity = cls(
+            id=feature_flag_name,
             force_enable_for_all_users=force_enable_for_all_users,
             rollout_percentage=rollout_percentage,
             user_group_ids=user_group_ids)
-        feature_entity.update_timestamps()
-        feature_entity.put()
-        return feature_entity
+        feature_flag_entity.update_timestamps()
+        feature_flag_entity.put()
+        return feature_flag_entity
